@@ -1,3 +1,6 @@
 prog
 *.o
 *.txt
+
+# language binary
+*clox*
