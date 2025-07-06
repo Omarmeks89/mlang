@@ -8,13 +8,15 @@ extern "C" {
 #include "common.h"
 #include "value.h"
 
+#define ALIGNED_BY_32BITS                   32
+
 typedef enum {
     OP_RETURN,                              /* return from current function */
     OP_CONSTANT                             /* produce constant */
 } OpCode;
 
 /* make array for op codes */
-typedef struct {
+typedef struct __attribute__((aligned(ALIGNED_BY_32BITS))) {
     unsigned int            count;
     unsigned int            cap;            /* if cap is done we will make realloc */
     uint8_t                 *code;          /* pointer on array of opcodes */

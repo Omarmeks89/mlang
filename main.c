@@ -1,6 +1,9 @@
 #include "common.h"
 #include "chunk.h"
 #include "clox_debug.h"
+#include "mem/amalloc.h"
+#include "mem/mem_class.h"
+#include "mem/ammap/ammap.h"
 
 int main() 
 {

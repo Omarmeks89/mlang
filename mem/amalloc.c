@@ -1,5 +1,6 @@
 #include "amalloc.h"
 #include "./ammap/ammap.h"
+#include "./mem_class.h"
 
 /* Module contains operation with memory arena */
 
@@ -13,7 +14,7 @@ typedef struct _mem_page
 memobj__mempage;
 
 /* service */
-typedef struct
+typedef struct _memobj__pg_meta
 {
     /* 8 + 8, align = 16, place?? */
     memobj__mempage                     *first;
@@ -22,17 +23,16 @@ typedef struct
 memobj__pg_meta;
 
 /* service */
-typedef struct
+struct _memobj_arena
 {
     /* each item by index is a own memory class descriptor */
-    memobj__pg_meta                     mem_blocks[DEFAULT_MEM_CLASSES_CNT];
-}
-memobj__arena;
+    memobj__pg_meta                     mem_blocks[MAX_POSSIBLE_MEM_CLASSES];
+};
 
-memobj__arena * init_arena(size_t arena_size);
+
+memobj__arena init_arena(size_t arena_size);
 memobj__pg_meta * init_pg_meta();
 memobj__mempage * new_mem_pg();
-static void * init_service_mem_region(size_t size);
 
 /* ==== public interface ==== */
 
@@ -44,6 +44,17 @@ static void * init_service_mem_region(size_t size);
 void * 
 allocate(size_t obj_size)
 {
+    int mem_class = 0;
+
+    mem_class = get_obj_memclass_size(obj_size);
+    if (mem_class == NULSIZE) return NULL;
+
+    if (mem_class == BIGOBJT)
+    {
+        /* ... */
+        return NULL;
+    }
+
     return NULL;
 }
 
@@ -55,20 +66,27 @@ deallocate(void * ptr)
 {
 }
 
-memobj__arena *
+memobj__arena
 init_arena(size_t arena_size)
 {
     void * arena_ptr = NULL;
-    /*
-     * TODO: implement
-     * 1. size == 0 or less than default -> set default
-     * 2. check returned pointer
-     */
+
+    if (arena_size < DEFAULT_ARENA_SIZE)
+        arena_size = (size_t) DEFAULT_ARENA_SIZE;
 
     arena_ptr = ammap__allocprot(arena_size);
-    if (arena_ptr == NULL)
-    {
-        /* TODO: handle error, lookup error.h */
-    }
-    return NULL;
+    if (arena_ptr == NULL) return NULL;
+    
+    /* init arena */
+
+    return (memobj__arena) arena_ptr;
 }
+
+/* \fn destroy_arena destroy main arena if needed. */
+void
+destroy_arena(memobj__arena * arena, size_t arena_size)
+{
+    if ((arena == NULL) || (*arena == NULL)) return;
+    ammap__freeprot((void **) arena, arena_size);
+}
+

@@ -7,9 +7,11 @@ extern "C" {
 
 #include "common.h"
 
+#define ALIGNED_BY_16BITS                   16
+
 typedef double Value;
 
-typedef struct {
+typedef struct __attribute__((aligned(ALIGNED_BY_16BITS))) {
     unsigned int                            cap;
     unsigned int                            count;
     Value                                   *values;
