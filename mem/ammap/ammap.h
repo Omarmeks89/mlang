@@ -79,6 +79,19 @@ extern "C" {
 
 /* ==== public API ==== */
 
+/*
+    mem_processing_errors describe possible error types
+    returned from ammap routines.
+*/
+enum _mem_processing_errors
+{
+    NOERR = 0,
+    NULPT,
+    NORND,
+    NDEAL,
+}
+mem_processing_errors;
+
 /* \fn ammap__roundsz round size of wished block size
  * made them page-aligned */
 static inline size_t
@@ -125,30 +138,10 @@ ammap__allocprot(size_t pg_size)
     return mempage;
 }
 
-/* \fn ammap__reallocprot realloc memory region into (may be) new space.
- * User have to check returned pointer address and remap own pointers if
- * start address is different than previous address.
- *
- * ammap__reallocprot use 'mremap' that not guarantee allocation new memory
- * region from old region address.
- */
-static inline void *
-ammap__reallocprot(void * ptr, size_t size)
-{
-    /*
-        (mremap from sys/mman.h)
-        https://man7.org/linux/man-pages/man2/mremap.2.html
-
-        1. mmap new bigger memory region
-        2. memcpy from ptr to new region
-        3. update all previously allocated addresses [!]
-        4. return new region to user
-    */
-    return NULL;
-}
-
 /* \fn ammap_freeprot free protected memory region was
- * previously allocated. */
+ * previously allocated. 
+ *
+ * Do not try to use ptr after freeprot call. */
 static inline int 
 ammap__freeprot(void * ptr, size_t pg_size)
 {
@@ -161,7 +154,7 @@ ammap__freeprot(void * ptr, size_t pg_size)
 #ifdef CLOX_MEM_DEBUG
         printf("impossible free null pointer: %p\n", ptr);
 #endif
-        return -1;
+        return NULPT;
     }
 
     rnd_flag = _a_mem__is_roundbsys(pg_size);
@@ -170,15 +163,22 @@ ammap__freeprot(void * ptr, size_t pg_size)
 #ifdef CLOX_MEM_DEBUG
         printf("page size not rounded (%d)\n", pg_size);
 #endif
-        return -1;
+        return NORND;
     }
 
+    /*
+         munmap return 0 if mem was deallocated or -1
+    */
     munmap_stat = munmap(ptr, pg_size);
     if (munmap_stat < 0)
     {
         /* we have to break and notify about system error */
         printf("%s\n", strerror(errno));
+        munmap_stat = NDEAL;
     }
+
+    /* we have to set pointer as NULL to avoid dangling pointer using */
+    ptr = NULL;
 
     return munmap_stat;
 }

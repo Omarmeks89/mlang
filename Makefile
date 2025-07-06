@@ -10,7 +10,10 @@ OBJS = $(SRC:.c=.o)
 
 # === test settings
 CHECK_FLAGS = -lcheck -lsubunit -lpthread -lm
-TEST = test
+TEST = tests
+TEST_SRC = ./mem/mem_class.c
+TEST_OBJS = $(TEST_SRC:.c=.o)
+TEST_MAIN = ./test/mem_unittest/mem_class_test.c
 
 # === lint settings (clang-tidy)
 C_LINT = lint
@@ -30,9 +33,9 @@ $(DEST): $(OBJS)
 	@echo '> build done'
 
 # test assembly
-$(TEST): 
+$(TEST): $(TEST_OBJS)
 	@echo '> build tests...'
-	@$(C_CMP) -std=$(C_STD) -o $@ $(CHECK_FLAGS)
+	@$(C_CMP) -std=$(C_STD) -o $@ $^ $(TEST_MAIN) $(CHECK_FLAGS)
 	@echo '> done'
 
 # linter
@@ -42,4 +45,4 @@ $(C_LINT):
 	@echo '> lint check done'
 
 clear:
-	rm -rf *.o
+	rm -rf *.o tests

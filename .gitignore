@@ -1,6 +1,12 @@
-prog
-*.o
+# text files
 *.txt
 
 # language binary
 *clox*
+*.o
+
+# tmp files
+*.swp
+
+# tests artifacts
+tests

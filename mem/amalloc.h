@@ -15,6 +15,11 @@ extern "C" {
 
 #define DEFAULT_PTR_SIZE        8ULL            
 
+/*
+    --
+*/
+/* TODO: create macro that define mem_class by obj size */
+
 void * allocate(size_t obj_size);
 void deallocate(void * ptr);
 
